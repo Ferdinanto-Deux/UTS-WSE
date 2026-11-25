@@ -1,0 +1,65 @@
+### HTTP Client (ekstensi "REST Client" VS Code / HTTP Client JetBrains)
+@base = http://localhost:3000
+
+### 1. Login mahasiswa (200)
+# @name loginMhs1
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "mhs1", "password": "Mahasiswa1#" }
+
+###
+@tokenMhs1 = {{loginMhs1.response.body.data.token}}
+
+### 2. Login admin
+# @name loginAdmin
+POST {{base}}/api/auth/login
+Content-Type: application/json
+
+{ "username": "admin", "password": "Admin#2026" }
+
+###
+@tokenAdmin = {{loginAdmin.response.body.data.token}}
+
+### 3. Tanpa token (401)
+GET {{base}}/api/pengaduan
+
+### 4. Mahasiswa membuat pengaduan (201)
+POST {{base}}/api/pengaduan
+Authorization: Bearer {{tokenMhs1}}
+Content-Type: application/json
+
+{ "judul": "Proyektor ruang C101 rusak", "kategori": "Fasilitas", "deskripsi": "Proyektor tidak menyala sehingga perkuliahan terganggu." }
+
+### 5. Mahasiswa membaca pengaduan orang lain (403)
+GET {{base}}/api/pengaduan/3
+Authorization: Bearer {{tokenMhs1}}
+
+### 6. Mahasiswa mengubah status (403)
+PATCH {{base}}/api/pengaduan/1/status
+Authorization: Bearer {{tokenMhs1}}
+Content-Type: application/json
+
+{ "status": "selesai" }
+
+### 7. Admin melihat semua (200)
+GET {{base}}/api/pengaduan
+Authorization: Bearer {{tokenAdmin}}
+
+### 8. Admin ubah status (200)
+PATCH {{base}}/api/pengaduan/3/status
+Authorization: Bearer {{tokenAdmin}}
+Content-Type: application/json
+
+{ "status": "diproses" }
+
+### 9. Field wajib kosong (400)
+POST {{base}}/api/pengaduan
+Authorization: Bearer {{tokenMhs1}}
+Content-Type: application/json
+
+{ "judul": "", "kategori": "Fasilitas" }
+
+### 10. ID tidak ditemukan (404)
+GET {{base}}/api/pengaduan/9999
+Authorization: Bearer {{tokenAdmin}}
